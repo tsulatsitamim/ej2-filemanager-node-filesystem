@@ -1,6 +1,5 @@
 /*jshint esversion: 8 */
 var express = require('express');
-var yargs = require('yargs');
 var app = express();
 var size = 0;
 var copyName = "";
@@ -14,14 +13,60 @@ const multer = require('multer');
 const fs = require('fs');
 var cors = require('cors')
 
-const contentRootPath = yargs.argv.d;
+var mysql      = require('mysql');
+var pool = mysql.createPool({
+  host     : process.env.DB_HOST,
+  user     : process.env.DB_USERNAME,
+  password : process.env.DB_PASSWORD,
+  database : process.env.DB_DATABASE
+});
 
+const rootStorage = process.env.ROOT_STORAGE ? process.env.ROOT_STORAGE : ''
+let contentRootPath = `${rootStorage}/storage/public`;
 
 app.use(bodyParser.urlencoded({
     extended: true
 }));
 app.use(bodyParser.json());
 app.use(cors());
+
+app.use (function (req, res, next) {
+    pool.query('SELECT user_id, name, department_position_id FROM sessions LEFT JOIN users ON users.id = sessions.user_id WHERE sessions.id = ?', [req.query.session],function (error, results, fields) {
+        if (error) throw error;
+
+        if (!results[0]) {
+            return res.status(404).send('User Not Found.')
+        }
+        const userId = results[0].user_id;
+        
+        pool.query('SELECT user_id FROM role_user WHERE user_id = ? AND role_id < 6;', [userId],function (error, results, fields) {
+            if (error) throw error;
+            
+            if (results[0]) {
+                res.locals.isAdmin = true;
+            } else {
+                res.locals.isAdmin = false;
+            }
+
+            if (req.query.private) {
+                contentRootPath = `${rootStorage}/storage/${userId}`
+            } else if (req.query.department) {
+                contentRootPath = `${rootStorage}/storage/${req.query.department}`
+            } else {
+                contentRootPath = `${rootStorage}/storage/public`
+            }
+
+            if (!fs.existsSync(contentRootPath)){
+                fs.mkdirSync(contentRootPath, { recursive: true });
+            }
+            if (!fs.existsSync(contentRootPath + '/Trash')){
+                fs.mkdirSync(contentRootPath + '/Trash', { recursive: true });
+            }
+
+            next();
+        });
+    });
+});
 
 var Permission = {
     Allow: "allow",
