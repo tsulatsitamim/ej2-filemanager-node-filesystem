@@ -50,6 +50,7 @@ app.use (function (req, res, next) {
             }
 
             if (req.query.private) {
+                res.locals.private = true
                 contentRootPath = `${rootStorage}/storage/${userId}`
             } else if (req.query.department) {
                 contentRootPath = `${rootStorage}/storage/${req.query.department}`
@@ -895,26 +896,37 @@ app.post('/Download', function (req, res) {
  */
 app.post('/', function (req, res) {
     req.setTimeout(0);
+
     function getRules() {
-        var details = new AccessDetails();
-        var accessRuleFile = "accessRules.json";
-        if (!fs.existsSync(accessRuleFile)) { return null; }
-        var rawData = fs.readFileSync(accessRuleFile);
-        if (rawData.length === 0) { return null; }
-        var parsedData = JSON.parse(rawData);
-        var data = parsedData.rules;
-        var accessRules = [];
-        for (var i = 0; i < data.length; i++) {
-            var rule = new AccessRules(data[i].path, data[i].role, data[i].read, data[i].write, data[i].writeContents, data[i].copy, data[i].download, data[i].upload, data[i].isFile, data[i].message);
-            accessRules.push(rule);
+        if (res.locals.private) {
+            return null
         }
-        if (accessRules.length == 1 && accessRules[0].path == undefined) {
-            return null;
-        } else {
-            details.rules = accessRules;
-            details.role = parsedData.role;
-            return details;
-        }
+        
+        var accessRules = [
+            {
+                path: '/',
+                role: 'user',
+                read: 'allow',
+                write: 'deny',
+                writeContents: 'deny',
+                copy: 'allow',
+                download: 'allow',
+                upload: 'deny',
+                isFile: false,
+            },
+            // {
+            //     path: '/*.*',
+            //     role: 'user',
+            //     read: 'allow',
+            //     write: 'deny',
+            //     writeContents: 'deny',
+            //     copy: 'allow',
+            //     download: 'allow',
+            //     upload: 'deny',
+            //     isFile: true,
+            // },
+        ];
+        return new AccessDetails(res.locals.isAdmin ? 'admin' : 'user', accessRules);
     }
 
     accessDetails = getRules();
