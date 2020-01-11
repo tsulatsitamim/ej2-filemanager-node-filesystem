@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  install:
+    image: node:10-alpine
+    volumes:
+      - ./:/app
+    command: npm install  --prefix app
+  node:
+    image: node:10-alpine
+    restart: always
+    depends_on: 
+      - install
+    volumes:
+      - ~/storage:/storage
+      - ./:/app
+    command: npm run start  --prefix app
+    ports:
+      - 5000:8090
+    expose:
+      - 8090
+    env_file: 
+      - .env
