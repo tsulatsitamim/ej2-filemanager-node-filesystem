@@ -11,7 +11,8 @@ const bodyParser = require("body-parser");
 const archiver = require('archiver');
 const multer = require('multer');
 const fs = require('fs');
-var cors = require('cors')
+var cors = require('cors');
+const moveFileModule = require('move-file');
 
 var mysql      = require('mysql');
 var pool = mysql.createPool({
@@ -823,7 +824,7 @@ app.post('/Upload', multer(multerConfig).any('uploadFiles'), function (req, res)
         res.json(response);
     } else {
         for (var i = 0; i < fileName.length; i++) {
-            fs.rename('./' + fileName[i], path.join(contentRootPath, req.body.path + fileName[i]), function (err) {
+            moveFileModule('./' + fileName[i], path.join(contentRootPath, req.body.path + fileName[i]), function (err) {
                 if (err) throw err;
             });
         }
