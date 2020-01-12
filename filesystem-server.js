@@ -733,10 +733,20 @@ function getPermission(filepath, name, isFile, contentRootPath, filterPath) {
                     // }
                 }
             }
-        });
-        console.log(filePermission);
-        console.log("\n");
-        
+
+            if (accessRule.role == accessDetails.role) {
+                const stat = fs.statSync(filepath);
+                if (((new Date().getTime() - new Date(stat.mtime).getTime()) / (24*60*60*1000)) > 0) {
+                    filePermission.write = false;
+                    filePermission.message = "File or folder is not accessible. Cannot delete the file or folder older than 24 hours."
+                }
+            }
+            
+
+            // if (condition) {
+                
+            // }
+        });        
         return filePermission;
     }
 }
