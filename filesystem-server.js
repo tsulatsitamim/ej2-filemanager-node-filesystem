@@ -61,9 +61,9 @@ app.use (function (req, res, next) {
             if (!fs.existsSync(contentRootPath)){
                 fs.mkdirSync(contentRootPath, { recursive: true });
             }
-            if (!fs.existsSync(contentRootPath + '/Trash')){
-                fs.mkdirSync(contentRootPath + '/Trash', { recursive: true });
-            }
+            // if (!fs.existsSync(contentRootPath + '/Trash')){
+            //     fs.mkdirSync(contentRootPath + '/Trash', { recursive: true });
+            // }
 
             next();
         });
@@ -468,12 +468,16 @@ function CopyFiles(req, res, contentRootPath) {
     var fileList = [];
     var replaceFileList = [];
     var permission; var pathPermission; var permissionDenied = false;
+    console.log("COPY START");
     pathPermission = getPathPermission(req.path, false, req.body.targetData.name, contentRootPath + req.body.targetPath, contentRootPath, req.body.targetData.filterPath);
+    console.log(pathPermission);
+    console.log("COPY END");
     req.body.data.forEach(function (item) {
         var fromPath = contentRootPath + item.filterPath;
         permission = getPermission(fromPath, item.name, item.isFile, contentRootPath, item.filterPath);
         var fileAccessDenied = (permission != null && (!permission.read || !permission.copy));
         var pathAccessDenied = (pathPermission != null && (!pathPermission.read || !pathPermission.writeContents));
+        
         if (fileAccessDenied || pathAccessDenied) {
             permissionDenied = true;
             var errorMsg = new Error();
@@ -709,16 +713,30 @@ function getPermission(filepath, name, isFile, contentRootPath, filterPath) {
                             filePermission = updateRules(filePermission, accessRule);
                         }
                     } else if (path.join(contentRootPath, accessRule.path) == path.join(parentFolderpath, name) || path.join(contentRootPath, accessRule.path) == path.join(parentFolderpath, name + "/")) {
+                        console.log('INSIDE RULED FOLDER');
                         filePermission = updateRules(filePermission, accessRule);
                     }
-                    else if (path.join(parentFolderpath, name).lastIndexOf(path.join(contentRootPath, accessRule.path)) == 0) {
-                        filePermission.write = hasPermission(accessRule.writeContents);
-                        filePermission.writeContents = hasPermission(accessRule.writeContents);
+                    
+                    else if (parentFolderpath + (parentFolderpath[parentFolderpath.length - 1] == "/" ? "" : "/") == path.join(contentRootPath, accessRule.path)) {
+                        console.log("MATCH SUB-FOLDER OF RULED FOLDER");
+                        filePermission.write = hasPermission(accessRule.write);
                         filePermission.message = getMessage(accessRule);
                     }
+                    if (!filterPath) {
+                        console.log("MATCH ROOT FOLDER");
+                        filePermission.writeContents = hasPermission(accessRule.writeContents);
+                    }
+                    // else if (path.join(parentFolderpath, name).lastIndexOf(path.join(contentRootPath, accessRule.path)) == 0) {
+                    //     filePermission.write = hasPermission(accessRule.writeContents);
+                    //     filePermission.writeContents = hasPermission(accessRule.writeContents);
+                    //     filePermission.message = getMessage(accessRule);
+                    // }
                 }
             }
         });
+        console.log(filePermission);
+        console.log("\n");
+        
         return filePermission;
     }
 }
@@ -909,7 +927,7 @@ app.post('/', function (req, res) {
                 read: 'allow',
                 write: 'deny',
                 writeContents: 'deny',
-                copy: 'allow',
+                copy: 'false',
                 download: 'allow',
                 upload: 'deny',
                 isFile: false,
