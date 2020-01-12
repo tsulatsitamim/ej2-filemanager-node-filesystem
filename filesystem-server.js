@@ -932,17 +932,17 @@ app.post('/', function (req, res) {
                 upload: 'deny',
                 isFile: false,
             },
-            // {
-            //     path: '/*.*',
-            //     role: 'user',
-            //     read: 'allow',
-            //     write: 'deny',
-            //     writeContents: 'deny',
-            //     copy: 'allow',
-            //     download: 'allow',
-            //     upload: 'deny',
-            //     isFile: true,
-            // },
+            {
+                path: '/',
+                role: 'user',
+                read: 'allow',
+                write: 'deny',
+                writeContents: 'deny',
+                copy: 'allow',
+                download: 'allow',
+                upload: 'allow',
+                isFile: true,
+            },
         ];
         return new AccessDetails(res.locals.isAdmin ? 'admin' : 'user', accessRules);
     }
