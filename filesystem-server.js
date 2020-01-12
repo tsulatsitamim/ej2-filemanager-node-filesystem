@@ -5,6 +5,7 @@ var size = 0;
 var copyName = "";
 var location = "";
 var isRenameChecking = false;
+var isDelete = false;
 var accessDetails = null;
 const path = require('path');
 const bodyParser = require("body-parser");
@@ -738,7 +739,9 @@ function getPermission(filepath, name, isFile, contentRootPath, filterPath) {
                 const stat = fs.statSync(filepath);
                 if (((new Date().getTime() - new Date(stat.mtime).getTime()) / (24*60*60*1000)) > 0) {
                     filePermission.write = false;
-                    filePermission.message = "File or folder is not accessible. Cannot delete the file or folder older than 24 hours."
+                    if (isDelete) {
+                        filePermission.message = "File or folder is not accessible. Cannot delete the file or folder older than 24 hours."
+                    }
                 }
             }
             
@@ -976,7 +979,9 @@ app.post('/', function (req, res) {
         createFolder(req, res, contentRootPath + req.body.path, contentRootPath);
     }
     // Action to remove a file
+    isDelete = false
     if (req.body.action == "delete") {
+        isDelete = true
         deleteFolder(req, res, contentRootPath);
     }
     // Action to rename a file
