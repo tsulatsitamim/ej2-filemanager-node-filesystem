@@ -821,7 +821,7 @@ const multerConfig = {
  * Gets the imageUrl from the client
  */
 app.get('/GetImage', function (req, res) {
-    var image = req.query.path.split("/").length > 1 ? req.query.path : "/" + req.query.path;
+    var image = req.query['?path'].split("/").length > 1 ? req.query['?path'] : "/" + req.query['?path'];
     var pathPermission = getPermission(contentRootPath + image.substr(0, image.lastIndexOf("/")), image.substr(image.lastIndexOf("/") + 1, image.length - 1), true, contentRootPath, image.substr(0, image.lastIndexOf("/")));
     if (pathPermission != null && !pathPermission.read) {
         return null;
@@ -838,6 +838,23 @@ app.get('/GetImage', function (req, res) {
             }
         });
     }
+});
+
+/**
+ * Gets the videoUrl from the client
+ */
+app.get('/GetVideo', function (req, res) {
+    var image = req.query['?path'].split("/").length > 1 ? req.query['?path'] : "/" + req.query['?path'];
+    fs.readFile(contentRootPath + image, function (err, content) {
+        if (err) {
+            res.writeHead(404, { 'Content-type': 'text/html' });
+            res.end("No such video " + image);
+        } else {
+            //specify the content type in the response will be an image
+            res.writeHead(200, { 'Content-type': 'video/mp4' });
+            res.end(content);
+        }
+    });
 });
 
 /**
