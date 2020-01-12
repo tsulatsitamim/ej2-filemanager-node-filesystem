@@ -176,7 +176,7 @@ function renameFolder(req, res) {
         } else {
             fs.renameSync(oldDirectoryPath, newDirectoryPath);
             (async () => {
-                await FileManagerDirectoryContent(req, res, newDirectoryPath + "/").then(data => {
+                await FileManagerDirectoryContent(req, res, newDirectoryPath).then(data => {
                     response = { files: data };
                     response = JSON.stringify(response);
                     res.setHeader('Content-Type', 'application/json');
