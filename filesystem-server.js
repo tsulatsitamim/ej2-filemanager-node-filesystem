@@ -858,6 +858,23 @@ app.get('/GetVideo', function (req, res) {
 });
 
 /**
+ * Gets the pdf from the client
+ */
+app.get('/GetPdf', function (req, res) {
+    var image = req.query['?path'].split("/").length > 1 ? req.query['?path'] : "/" + req.query['?path'];
+    fs.readFile(contentRootPath + image, function (err, content) {
+        if (err) {
+            res.writeHead(404, { 'Content-type': 'text/html' });
+            res.end("No such document " + image);
+        } else {
+            //specify the content type in the response will be an image
+            res.writeHead(200, { 'Content-type': 'application/pdf' });
+            res.end(content);
+        }
+    });
+});
+
+/**
  * Handles the upload request
  */
 app.post('/Upload', multer(multerConfig).any('uploadFiles'), function (req, res) {
