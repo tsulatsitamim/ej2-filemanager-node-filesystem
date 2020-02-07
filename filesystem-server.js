@@ -14,6 +14,7 @@ const multer = require('multer');
 const fs = require('fs');
 var cors = require('cors');
 const moveFileModule = require('move-file');
+var Jimp = require('jimp');
 
 var mysql      = require('mysql');
 var pool = mysql.createPool({
@@ -820,6 +821,20 @@ const multerConfig = {
 /**
  * Gets the imageUrl from the client
  */
+
+ const readImage = (req, res, path) => {
+    fs.readFile(path, function (err, content) {
+        if (err) {
+            res.writeHead(400, { 'Content-type': 'text/html' });
+            return res.end("No such image");
+        } else {
+            //specify the content type in the response will be an image
+            res.writeHead(200, { 'Content-type': 'image/jpg' });
+            return res.end(content);
+        }
+    });
+ }
+
 app.get('/GetImage', function (req, res) {
     var image = req.query['?path'].split("/").length > 1 ? req.query['?path'] : "/" + req.query['?path'];
     var pathPermission = getPermission(contentRootPath + image.substr(0, image.lastIndexOf("/")), image.substr(image.lastIndexOf("/") + 1, image.length - 1), true, contentRootPath, image.substr(0, image.lastIndexOf("/")));
@@ -827,16 +842,28 @@ app.get('/GetImage', function (req, res) {
         return null;
     }
     else {
-        fs.readFile(contentRootPath + image, function (err, content) {
-            if (err) {
+        if (req.query.full) {
+            return readImage(req, res, contentRootPath + image)
+        }
+        if (fs.existsSync(contentRootPath + image + '.thumb')) {
+            return readImage(req, res, contentRootPath + image + '.thumb')
+        }
+
+        Jimp.read(contentRootPath + image)
+            .then(img => {
+                img.resize(100, 100)
+                    .quality(60)
+                    .writeAsync(contentRootPath + image + '.thumb').then(() => {
+                        return readImage(req, res, contentRootPath + image + '.thumb')
+                    }).catch(err => {
+                        res.writeHead(400, { 'Content-type': 'text/html' });
+                        return res.end("Error generating thumbnail");
+                    });
+            })
+            .catch(err => {
                 res.writeHead(400, { 'Content-type': 'text/html' });
-                res.end("No such image");
-            } else {
-                //specify the content type in the response will be an image
-                res.writeHead(200, { 'Content-type': 'image/jpg' });
-                res.end(content);
-            }
-        });
+                return res.end("Error generating thumbnail");
+            });
     }
 });
 
@@ -1194,7 +1221,7 @@ app.post('/', function (req, res) {
             }
             else {
                 ReadDirectories(filesList).then(data => {
-                    response = { cwd: cwdFiles, files: data };
+                    response = { cwd: cwdFiles, files: data.filter(x => x.name.slice(-6) !== '.thumb') };
                     response = JSON.stringify(response);
                     res.setHeader('Content-Type', 'application/json');
                     res.json(response);
