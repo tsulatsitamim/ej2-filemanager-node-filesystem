@@ -1,3 +1,4 @@
+/* eslint-disable */
 /*jshint esversion: 8 */
 var express = require('express');
 var app = express();
@@ -738,7 +739,7 @@ function getPermission(filepath, name, isFile, contentRootPath, filterPath) {
 
             if (accessRule.role == accessDetails.role) {
                 const stat = fs.statSync(filepath);
-                if (((new Date().getTime() - new Date(stat.mtime).getTime()) / (24*60*60*1000)) > 1) {
+                if (((new Date().getTime() - new Date(stat.mtime).getTime()) / (48*60*60*1000)) > 1) {
                     filePermission.write = false;
                     if (isDelete) {
                         filePermission.message = "File or folder is not accessible. Cannot delete the file or folder older than 24 hours."
