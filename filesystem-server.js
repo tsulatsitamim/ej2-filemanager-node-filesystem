@@ -52,21 +52,19 @@ app.use (function (req, res, next) {
                 res.locals.isAdmin = false;
             }
 
-            if (req.query.private) {
+            if (!isNaN(Number(req.query.slug))) {
+                if (userId != req.query.slug) {
+                    const errorMsg = new Error()
+                    errorMsg.message = "Bad Request";
+                    return res.send({error: errorMsg});
+                }
                 res.locals.private = true
-                contentRootPath = `${rootStorage}/storage/${userId}`
-            } else if (req.query.department) {
-                contentRootPath = `${rootStorage}/storage/${req.query.department}`
-            } else {
-                contentRootPath = `${rootStorage}/storage/public`
             }
+            contentRootPath = `${rootStorage}/storage/${req.query.slug}`
 
             if (!fs.existsSync(contentRootPath)){
                 fs.mkdirSync(contentRootPath, { recursive: true });
             }
-            // if (!fs.existsSync(contentRootPath + '/Trash')){
-            //     fs.mkdirSync(contentRootPath + '/Trash', { recursive: true });
-            // }
 
             next();
         });
