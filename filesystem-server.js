@@ -16,6 +16,9 @@ const fs = require('fs');
 var cors = require('cors');
 const moveFileModule = require('move-file');
 var Jimp = require('jimp');
+const Sentry = require('@sentry/node');
+
+Sentry.init({ dsn: 'https://34aa89aab3e94897be0aa5cd704f6697@sentry.io/5179615' });
 
 var mysql      = require('mysql');
 var pool = mysql.createPool({
@@ -28,6 +31,7 @@ var pool = mysql.createPool({
 const rootStorage = process.env.ROOT_STORAGE ? process.env.ROOT_STORAGE : ''
 let contentRootPath = `${rootStorage}/storage/public`;
 
+app.use(Sentry.Handlers.requestHandler());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
@@ -834,7 +838,7 @@ const multerConfig = {
     });
  }
 
-app.get('/GetImage', function (req, res) {
+app.get('/GetImage', function (req, res, next) {
     var image = req.query['?path'].split("/").length > 1 ? req.query['?path'] : "/" + req.query['?path'];
     var pathPermission = getPermission(contentRootPath + image.substr(0, image.lastIndexOf("/")), image.substr(image.lastIndexOf("/") + 1, image.length - 1), true, contentRootPath, image.substr(0, image.lastIndexOf("/")));
     if (pathPermission != null && !pathPermission.read) {
@@ -848,20 +852,18 @@ app.get('/GetImage', function (req, res) {
             return readImage(req, res, contentRootPath + image + '.thumb')
         }
 
-        Jimp.read(contentRootPath + image)
+        Jimp.read(contentRootPath + image + 'x')
             .then(img => {
                 img.resize(100, 100)
                     .quality(60)
                     .writeAsync(contentRootPath + image + '.thumb').then(() => {
-                        return readImage(req, res, contentRootPath + image + '.thumb')
+                        return readImage(req, res, contentRootPath + image + '.thumbxx')
                     }).catch(err => {
-                        res.writeHead(400, { 'Content-type': 'text/html' });
-                        return res.end("Error generating thumbnail");
+                        next(err)
                     });
             })
             .catch(err => {
-                res.writeHead(400, { 'Content-type': 'text/html' });
-                return res.end("Error generating thumbnail");
+                next(err)
             });
     }
 });
@@ -1230,6 +1232,9 @@ app.post('/', function (req, res) {
     }
 
 });
+
+app.use(Sentry.Handlers.errorHandler());
+
 /**
  * Server serving port
  */
