@@ -15,8 +15,8 @@ const multer = require('multer');
 const fs = require('fs');
 var cors = require('cors');
 const moveFileModule = require('move-file');
-var Jimp = require('jimp');
 const Sentry = require('@sentry/node');
+const sharp = require('sharp');
 
 Sentry.init({ dsn: 'https://34aa89aab3e94897be0aa5cd704f6697@sentry.io/5179615' });
 
@@ -852,19 +852,14 @@ app.get('/GetImage', function (req, res, next) {
             return readImage(req, res, contentRootPath + image + '.thumb')
         }
 
-        Jimp.read(contentRootPath + image)
-            .then(img => {
-                img.resize(100, 100)
-                    .quality(60)
-                    .writeAsync(contentRootPath + image + '.thumb').then(() => {
-                        return readImage(req, res, contentRootPath + image + '.thumbxx')
-                    }).catch(err => {
-                        next(err)
-                    });
+        sharp(contentRootPath + image,  { failOnError: false })
+            .resize(100, 100)
+            .webp()
+            .toFile(contentRootPath + image + '.thumb')
+            .then( data => { 
+                return readImage(req, res, contentRootPath + image + '.thumb')
             })
-            .catch(err => {
-                next(err)
-            });
+            .catch( err => next(err));
     }
 });
 
