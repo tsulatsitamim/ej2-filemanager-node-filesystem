@@ -852,7 +852,7 @@ app.get('/GetImage', function (req, res, next) {
             return readImage(req, res, contentRootPath + image + '.thumb')
         }
 
-        Jimp.read(contentRootPath + image + 'x')
+        Jimp.read(contentRootPath + image)
             .then(img => {
                 img.resize(100, 100)
                     .quality(60)
