@@ -1094,15 +1094,15 @@ app.post('/', function (req, res) {
     function checkForSearchResult(casesensitive, filter, isFile, fileName, searchString) {
         var isAddable = false;
         if (searchString.substr(0, 1) == "*" && searchString.substr(searchString.length - 1, 1) == "*") {
-            if (casesensitive ? fileName.indexOf(filter) >= 0 : (fileName.indexOf(filter.toLowerCase()) >= 0 || fileName.indexOf(filter.toUpperCase()) >= 0)) {
+            if (casesensitive ? fileName.indexOf(filter) >= 0 : (fileName.toLowerCase().indexOf(filter.toLowerCase()) >= 0 || fileName.toUpperCase().indexOf(filter.toUpperCase()) >= 0)) {
                 isAddable = true
             }
         } else if (searchString.substr(searchString.length - 1, 1) == "*") {
-            if (casesensitive ? fileName.startsWith(filter) : (fileName.startsWith(filter.toLowerCase()) || fileName.startsWith(filter.toUpperCase()))) {
+            if (casesensitive ? fileName.startsWith(filter) : (fileName.toLowerCase().startsWith(filter.toLowerCase()) || fileName.toUpperCase().startsWith(filter.toUpperCase()))) {
                 isAddable = true
             }
         } else {
-            if (casesensitive ? fileName.endsWith(filter) : (fileName.endsWith(filter.toLowerCase()) || fileName.endsWith(filter.toUpperCase()))) {
+            if (casesensitive ? fileName.endsWith(filter) : (fileName.toLowerCase().endsWith(filter.toLowerCase()) || fileName.toUpperCase().endsWith(filter.toUpperCase()))) {
                 isAddable = true
             }
         }
@@ -1123,6 +1123,7 @@ app.post('/', function (req, res) {
                 }
                 fromDir(filename, filter, contentRootPath, casesensitive, searchString); //recurse
             }
+            
             else if (checkForSearchResult(casesensitive, filter, true, files[i], searchString)) {
                 addSearchList(filename, contentRootPath, fileList, files, i);
             }
