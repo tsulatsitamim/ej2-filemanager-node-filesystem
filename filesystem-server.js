@@ -17,6 +17,8 @@ var cors = require('cors');
 const moveFileModule = require('move-file');
 const Sentry = require('@sentry/node');
 const sharp = require('sharp');
+const extract = require('extract-zip')
+
 
 Sentry.init({ dsn: 'https://34aa89aab3e94897be0aa5cd704f6697@sentry.io/5179615' });
 
@@ -113,6 +115,18 @@ class AccessRules {
         this.message = message
     }
 }
+
+async function unzipFile(req, res) {
+    
+    if (req.body.name.substr(-4).toUpperCase() === '.ZIP') {
+        await extract(path.join(contentRootPath + req.body.path + req.body.name), {dir: path.join(contentRootPath + req.body.path)})
+        return res.status(204).send('OK')
+    } else {
+        res.status(204).send()
+    }
+}
+
+
 /**
  * Reads text from the file asynchronously and returns a Promise.
  */
@@ -1023,6 +1037,13 @@ app.post('/', function (req, res) {
     if (req.body.action == "details") {
         getFileDetails(req, res, contentRootPath + req.body.path, req.body.data[0].filterPath);
     }
+
+    // Action for getDetails
+    if (req.body.action == "unzip") {
+        unzipFile(req, res);
+
+    }
+
     // Action for copying files
     if (req.body.action == "copy") {
         CopyFiles(req, res, contentRootPath);
