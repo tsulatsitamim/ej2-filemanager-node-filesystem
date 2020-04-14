@@ -9,10 +9,8 @@ services:
   node:
     image: node:lts-slim
     restart: always
-    depends_on: 
-      - install
     volumes:
-      - ~/storage:/storage
+      - /var/lib/fs/storage:/storage
       - ./:/app
     command: npm run start  --prefix app
     ports:
