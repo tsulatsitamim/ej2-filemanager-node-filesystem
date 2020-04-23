@@ -1223,6 +1223,16 @@ app.post('/', function (req, res) {
     // Action to read a file
     if (req.body.action == "read") {
         (async () => {
+
+            if (!fs.existsSync(contentRootPath + req.body.path)) {
+                const errorMsg = new Error()
+                errorMsg.message = "Folder terakhir dikunjungi (" + req.body.path + ") tidak ditemukan.";
+                response = { error: errorMsg };
+                response = JSON.stringify(response);
+                res.setHeader('Content-Type', 'application/json');
+                return res.json(response);
+            }
+
             const filesList = await GetFiles(req, res);
             const cwdFiles = await FileManagerDirectoryContent(req, res, contentRootPath + req.body.path);
             cwdFiles.name = req.body.path == "/" ? rootName = (path.basename(contentRootPath + req.body.path)) : path.basename(contentRootPath + req.body.path)
