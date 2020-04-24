@@ -1249,7 +1249,7 @@ app.post('/', function (req, res) {
                 }
             } catch (error) {
                 const errorMsg = new Error()
-                errorMsg.message = "Folder terakhir dikunjungi (" + req.body.path + ") tidak ditemukan.";
+                errorMsg.message = "Folder terakhir dikunjungi (" + req.body.path.substring(1, req.body.path.length -1)+ ") tidak ditemukan.";
                 response = { error: errorMsg };
                 response = JSON.stringify(response);
                 res.setHeader('Content-Type', 'application/json');
