@@ -1224,7 +1224,30 @@ app.post('/', function (req, res) {
     if (req.body.action == "read") {
         (async () => {
 
-            if (!fs.existsSync(contentRootPath + req.body.path)) {
+            try {
+                const filesList = await GetFiles(req, res);
+                const cwdFiles = await FileManagerDirectoryContent(req, res, contentRootPath + req.body.path);
+                cwdFiles.name = req.body.path == "/" ? rootName = (path.basename(contentRootPath + req.body.path)) : path.basename(contentRootPath + req.body.path)
+                var response = {};
+                if (cwdFiles.permission != null && !cwdFiles.permission.read) {
+                    var errorMsg = new Error();
+                    errorMsg.message = (cwdFiles.permission.message !== "") ? cwdFiles.permission.message :
+                        "'" + cwdFiles.name + "' is not accessible. You need permission to perform the read action.";
+                    errorMsg.code = "401";
+                    response = { cwd: cwdFiles, files: null, error: errorMsg };
+                    response = JSON.stringify(response);
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json(response);
+                }
+                else {
+                    ReadDirectories(filesList).then(data => {
+                        response = { cwd: cwdFiles, files: data.filter(x => x.name.slice(-6) !== '.thumb') };
+                        response = JSON.stringify(response);
+                        res.setHeader('Content-Type', 'application/json');
+                        res.json(response);
+                    });
+                }
+            } catch (error) {
                 const errorMsg = new Error()
                 errorMsg.message = "Folder terakhir dikunjungi (" + req.body.path + ") tidak ditemukan.";
                 response = { error: errorMsg };
@@ -1233,28 +1256,6 @@ app.post('/', function (req, res) {
                 return res.json(response);
             }
 
-            const filesList = await GetFiles(req, res);
-            const cwdFiles = await FileManagerDirectoryContent(req, res, contentRootPath + req.body.path);
-            cwdFiles.name = req.body.path == "/" ? rootName = (path.basename(contentRootPath + req.body.path)) : path.basename(contentRootPath + req.body.path)
-            var response = {};
-            if (cwdFiles.permission != null && !cwdFiles.permission.read) {
-                var errorMsg = new Error();
-                errorMsg.message = (cwdFiles.permission.message !== "") ? cwdFiles.permission.message :
-                    "'" + cwdFiles.name + "' is not accessible. You need permission to perform the read action.";
-                errorMsg.code = "401";
-                response = { cwd: cwdFiles, files: null, error: errorMsg };
-                response = JSON.stringify(response);
-                res.setHeader('Content-Type', 'application/json');
-                res.json(response);
-            }
-            else {
-                ReadDirectories(filesList).then(data => {
-                    response = { cwd: cwdFiles, files: data.filter(x => x.name.slice(-6) !== '.thumb') };
-                    response = JSON.stringify(response);
-                    res.setHeader('Content-Type', 'application/json');
-                    res.json(response);
-                });
-            }
         })();
     }
 
