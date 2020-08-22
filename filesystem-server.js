@@ -867,7 +867,7 @@ app.get('/GetImage', function (req, res, next) {
         }
 
         sharp(contentRootPath + image,  { failOnError: false })
-            .resize(100, 100)
+            .resize({ width: 350 })
             .webp()
             .toFile(contentRootPath + image + '.thumb')
             .then( data => { 
