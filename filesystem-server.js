@@ -867,7 +867,7 @@ app.get('/GetImage', function (req, res, next) {
         }
 
         sharp(contentRootPath + image,  { failOnError: false })
-            .resize({ width: 350 })
+            .resize(100, 100)
             .webp()
             .toFile(contentRootPath + image + '.thumb')
             .then( data => { 
@@ -1241,7 +1241,8 @@ app.post('/', function (req, res) {
                 }
                 else {
                     ReadDirectories(filesList).then(data => {
-                        response = { cwd: cwdFiles, files: data.filter(x => x.name.slice(-6) !== '.thumb') };
+                        const extension = x.name.slice(-6)
+                        response = { cwd: cwdFiles, files: data.filter(x => extension !== '.thumb' && extension !== '.350thumb') };
                         response = JSON.stringify(response);
                         res.setHeader('Content-Type', 'application/json');
                         res.json(response);
