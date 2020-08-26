@@ -1240,12 +1240,11 @@ app.post('/', function (req, res) {
                     res.json(response);
                 }
                 else {
-                    ReadDirectories(filesList).then(data => {
-                        response = { cwd: cwdFiles, files: data.filter(x => x.name.slice(-6) !== '.thumb' && x.name.slice(-8) !== '.350thumb') };
-                        response = JSON.stringify(response);
-                        res.setHeader('Content-Type', 'application/json');
-                        res.json(response);
-                    });
+                    const data = await ReadDirectories(filesList)
+                    response = { cwd: cwdFiles, files: data.filter(x => x.name.slice(-6) !== '.thumb' && x.name.slice(-8) !== '.350thumb') };
+                    response = JSON.stringify(response);
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json(response);
                 }
             } catch (error) {
                 const errorMsg = new Error()
