@@ -1241,8 +1241,7 @@ app.post('/', function (req, res) {
                 }
                 else {
                     ReadDirectories(filesList).then(data => {
-                        const extension = x.name.slice(-6)
-                        response = { cwd: cwdFiles, files: data.filter(x => extension !== '.thumb' && extension !== '.350thumb') };
+                        response = { cwd: cwdFiles, files: data.filter(x => x.name.slice(-6) !== '.thumb' && x.name.slice(-8) !== '.350thumb') };
                         response = JSON.stringify(response);
                         res.setHeader('Content-Type', 'application/json');
                         res.json(response);
