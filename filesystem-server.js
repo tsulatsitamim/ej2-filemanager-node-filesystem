@@ -487,10 +487,10 @@ function CopyFiles(req, res, contentRootPath) {
     var fileList = [];
     var replaceFileList = [];
     var permission; var pathPermission; var permissionDenied = false;
-    console.log("COPY START");
+    // console.log("COPY START");
     pathPermission = getPathPermission(req.path, false, req.body.targetData.name, contentRootPath + req.body.targetPath, contentRootPath, req.body.targetData.filterPath);
     console.log(pathPermission);
-    console.log("COPY END");
+    // console.log("COPY END");
     req.body.data.forEach(function (item) {
         var fromPath = contentRootPath + item.filterPath;
         permission = getPermission(fromPath, item.name, item.isFile, contentRootPath, item.filterPath);
@@ -732,17 +732,17 @@ function getPermission(filepath, name, isFile, contentRootPath, filterPath) {
                             filePermission = updateRules(filePermission, accessRule);
                         }
                     } else if (path.join(contentRootPath, accessRule.path) == path.join(parentFolderpath, name) || path.join(contentRootPath, accessRule.path) == path.join(parentFolderpath, name + "/")) {
-                        console.log('INSIDE RULED FOLDER');
+                        // console.log('INSIDE RULED FOLDER');
                         filePermission = updateRules(filePermission, accessRule);
                     }
                     
                     else if (parentFolderpath + (parentFolderpath[parentFolderpath.length - 1] == "/" ? "" : "/") == path.join(contentRootPath, accessRule.path)) {
-                        console.log("MATCH SUB-FOLDER OF RULED FOLDER");
+                        // console.log("MATCH SUB-FOLDER OF RULED FOLDER");
                         filePermission.write = hasPermission(accessRule.write);
                         filePermission.message = getMessage(accessRule);
                     }
                     if (!filterPath) {
-                        console.log("MATCH ROOT FOLDER");
+                        // console.log("MATCH ROOT FOLDER");
                         filePermission.writeContents = hasPermission(accessRule.writeContents);
                     }
                     // else if (path.join(parentFolderpath, name).lastIndexOf(path.join(contentRootPath, accessRule.path)) == 0) {
