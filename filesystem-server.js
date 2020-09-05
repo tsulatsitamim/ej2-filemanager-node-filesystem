@@ -873,7 +873,10 @@ app.get('/GetImage', function (req, res, next) {
             .then( data => { 
                 return readImage(req, res, contentRootPath + image + '.thumb')
             })
-            .catch( err => next(err));
+            .catch( err => {
+                readImage(req, res, contentRootPath + image)
+                return next(err)
+            });
     }
 });
 
