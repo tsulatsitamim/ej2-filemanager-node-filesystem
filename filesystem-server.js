@@ -1266,6 +1266,10 @@ app.post('/', function (req, res) {
 
 app.use(Sentry.Handlers.errorHandler());
 
+process.on('uncaughtException', function(err) {
+    console.log(err)
+})
+
 /**
  * Server serving port
  */
