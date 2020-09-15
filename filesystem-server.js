@@ -886,23 +886,20 @@ app.get('/GetImage', function (req, res, next) {
         }
 
         if (req.query['?path'].slice(-8) === '350thumb') {
-            if (fs.existsSync(contentRootPath + image + '.350thumb')) {
-                return readImage(req, res, contentRootPath + image + '.350thumb')
+            if (fs.existsSync(contentRootPath + image)) {
+                return readImage(req, res, contentRootPath + image)
             }
 
-            sharp(contentRootPath + image,  { failOnError: false })
+            return sharp(contentRootPath + image.replace('.350thumb', ''),  { failOnError: false })
                 .resize({ width: 350 })
                 .webp()
-                .toFile(contentRootPath + image + '.350thumb')
+                .toFile(contentRootPath + image)
                 .then( data => { 
-                    return readImage(req, res, contentRootPath + image + '.350thumb')
+                    return readImage(req, res, contentRootPath + image)
                 })
                 .catch( err => {
-                    readImage(req, res, contentRootPath + image)
-                    return next(err)
+                    return readImage(req, res, contentRootPath + image)
                 });
-
-            return
         }
 
         if (fs.existsSync(contentRootPath + image + '.thumb')) {
