@@ -868,6 +868,7 @@ const multerConfig = {
             return res.end("No such image");
         } else {
             //specify the content type in the response will be an image
+            res.set('Cache-Control', 'public, max-age=2592000');
             res.writeHead(200, { 'Content-type': 'image/jpg' });
             return res.end(content);
         }
@@ -931,6 +932,7 @@ app.get('/GetVideo', function (req, res) {
             res.end("No such video " + image);
         } else {
             //specify the content type in the response will be an image
+            res.set('Cache-Control', 'public, max-age=2592000');
             res.writeHead(200, { 'Content-type': 'video/mp4' });
             res.end(content);
         }
@@ -948,6 +950,7 @@ app.get('/GetPdf', function (req, res) {
             res.end("No such document " + image);
         } else {
             //specify the content type in the response will be an image
+            res.set('Cache-Control', 'public, max-age=2592000');
             res.writeHead(200, { 'Content-type': 'application/pdf' });
             res.end(content);
         }
