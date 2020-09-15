@@ -19,6 +19,21 @@ const Sentry = require('@sentry/node');
 const sharp = require('sharp');
 const extract = require('extract-zip')
 
+const cookie = require('cookie');
+const crypto = require('crypto');
+
+const getSessionKey = function (laravelSession, laravelKey, keyLength) {
+    keyLength = keyLength || 32;
+    let cypher = 'aes-' + keyLength * 8 + '-cbc';
+    laravelSession = new Buffer(laravelSession, 'base64');
+    laravelSession = laravelSession.toString();
+    laravelSession = JSON.parse(laravelSession);
+    laravelKey = new Buffer(laravelKey, 'base64');
+    laravelSession.iv = new Buffer(laravelSession.iv, 'base64');
+    let decoder = crypto.createDecipheriv(cypher, laravelKey, laravelSession.iv);
+    let decoded = decoder.update(laravelSession.value, 'base64');
+    return decoded.toString()
+}
 
 Sentry.init({ dsn: 'https://34aa89aab3e94897be0aa5cd704f6697@sentry.io/5179615' });
 
@@ -41,6 +56,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.use (function (req, res, next) {
+    // return res.send(getSessionKey(cookie.parse(req.headers.cookie).laravel_session, 'SxrpDeioGt+LLR3ZTiNAuHwAf0lqqAPrCKKYErcbZIc='))
     pool.query('SELECT user_id, name, department_position_id FROM sessions LEFT JOIN users ON users.id = sessions.user_id WHERE sessions.id = ?', [req.query.session],function (error, results, fields) {
         if (error) throw error;
 
