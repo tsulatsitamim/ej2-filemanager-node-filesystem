@@ -23,16 +23,21 @@ const cookie = require('cookie');
 const crypto = require('crypto');
 
 const getSessionKey = function (laravelSession, laravelKey, keyLength) {
-    keyLength = keyLength || 32;
-    let cypher = 'aes-' + keyLength * 8 + '-cbc';
-    laravelSession = new Buffer(laravelSession, 'base64');
-    laravelSession = laravelSession.toString();
-    laravelSession = JSON.parse(laravelSession);
-    laravelKey = new Buffer(laravelKey, 'base64');
-    laravelSession.iv = new Buffer(laravelSession.iv, 'base64');
-    let decoder = crypto.createDecipheriv(cypher, laravelKey, laravelSession.iv);
-    let decoded = decoder.update(laravelSession.value, 'base64');
-    return decoded.toString()
+    try {
+        keyLength = keyLength || 32;
+        let cypher = 'aes-' + keyLength * 8 + '-cbc';
+        laravelSession = new Buffer(laravelSession, 'base64');
+        laravelSession = laravelSession.toString();
+        laravelSession = JSON.parse(laravelSession);
+        laravelKey = new Buffer(laravelKey, 'base64');
+        laravelSession.iv = new Buffer(laravelSession.iv, 'base64');
+        let decoder = crypto.createDecipheriv(cypher, laravelKey, laravelSession.iv);
+        let decoded = decoder.update(laravelSession.value, 'base64');
+        return decoded.toString()
+    } catch (error) {
+        console.log(error)
+        return null
+    }
 }
 
 Sentry.init({ dsn: 'https://34aa89aab3e94897be0aa5cd704f6697@sentry.io/5179615' });
@@ -56,8 +61,9 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.use (function (req, res, next) {
-    // return res.send(getSessionKey(cookie.parse(req.headers.cookie).laravel_session, 'SxrpDeioGt+LLR3ZTiNAuHwAf0lqqAPrCKKYErcbZIc='))
-    pool.query('SELECT user_id, name, department_position_id FROM sessions LEFT JOIN users ON users.id = sessions.user_id WHERE sessions.id = ?', [req.query.session],function (error, results, fields) {
+    const session = getSessionKey(cookie.parse(req.headers.cookie).laravel_session, process.env.APP_KEY.split(':')[1])
+
+    pool.query('SELECT user_id, name, department_position_id FROM sessions LEFT JOIN users ON users.id = sessions.user_id WHERE sessions.id like ?', [`${session || req.query.session}%`],function (error, results, fields) {
         if (error) throw error;
 
         if (!results[0]) {
@@ -878,6 +884,27 @@ app.get('/GetImage', function (req, res, next) {
         if (req.query.full) {
             return readImage(req, res, contentRootPath + image)
         }
+
+        if (req.query['?path'].slice(-8) === '350thumb') {
+            if (fs.existsSync(contentRootPath + image + '.350thumb')) {
+                return readImage(req, res, contentRootPath + image + '.350thumb')
+            }
+
+            sharp(contentRootPath + image,  { failOnError: false })
+                .resize({ width: 350 })
+                .webp()
+                .toFile(contentRootPath + image + '.350thumb')
+                .then( data => { 
+                    return readImage(req, res, contentRootPath + image + '.350thumb')
+                })
+                .catch( err => {
+                    readImage(req, res, contentRootPath + image)
+                    return next(err)
+                });
+
+            return
+        }
+
         if (fs.existsSync(contentRootPath + image + '.thumb')) {
             return readImage(req, res, contentRootPath + image + '.thumb')
         }
