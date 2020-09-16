@@ -950,7 +950,7 @@ app.get('/GetPdf', function (req, res) {
             res.end("No such document " + image);
         } else {
             //specify the content type in the response will be an image
-            res.set('Cache-Control', 'public, max-age=2592000');
+            // res.set('Cache-Control', 'public, max-age=2592000');
             res.writeHead(200, { 'Content-type': 'application/pdf' });
             res.end(content);
         }
