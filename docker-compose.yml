@@ -7,7 +7,8 @@ services:
       - ./:/app
     command: npm install  --prefix app
   node:
-    image: node:lts-slim
+    build:
+      context: ./filesystem-provider
     restart: always
     volumes:
       - /var/lib/fs/storage:/storage
