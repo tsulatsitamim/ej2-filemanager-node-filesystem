@@ -8,7 +8,7 @@ services:
     command: npm install  --prefix app
   node:
     build:
-      context: ./filesystem-provider
+      context: .
     restart: always
     volumes:
       - /var/lib/fs/storage:/storage
