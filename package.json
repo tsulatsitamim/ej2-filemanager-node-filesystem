@@ -41,6 +41,7 @@
     "nodemon": "^1.19.3",
     "path": "^0.12.7",
     "sharp": "^0.25.2",
+    "simple-thumbnail": "^1.6.5",
     "yargs": "^14.2.0"
   },
   "devDependencies": {

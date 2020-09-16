@@ -18,6 +18,7 @@ const moveFileModule = require('move-file');
 const Sentry = require('@sentry/node');
 const sharp = require('sharp');
 const extract = require('extract-zip')
+const genThumbnail = require('simple-thumbnail')
 
 const cookie = require('cookie');
 const crypto = require('crypto');
@@ -891,16 +892,11 @@ app.get('/GetImage', function (req, res, next) {
                 return readImage(req, res, contentRootPath + image)
             }
 
-            return sharp(contentRootPath + image.replace('.350thumb', ''),  { failOnError: false })
-                .resize({ width: 350 })
-                .webp()
-                .toFile(contentRootPath + image)
-                .then( data => { 
-                    return readImage(req, res, contentRootPath + image)
-                })
-                .catch( err => {
-                    return readImage(req, res, contentRootPath + image)
-                });
+            return genThumbnail(contentRootPath + image.slice(0, image.length - 9), contentRootPath + image + '.jpg', '350x?')
+                .then(() => {
+                    fs.renameSync(contentRootPath + image + '.jpg', contentRootPath + image)
+                    readImage(req, res, contentRootPath + image)})
+                .catch(err => readImage(req, res, contentRootPath + image.slice(0, image.length - 9)))
         }
 
         if (fs.existsSync(contentRootPath + image + '.thumb')) {
