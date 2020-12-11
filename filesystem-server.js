@@ -56,6 +56,7 @@ let contentRootPath = `${rootStorage}/storage/public`;
 
 app.use(Sentry.Handlers.requestHandler());
 app.use(bodyParser.urlencoded({
+    limit: '10mb',
     extended: true
 }));
 app.use(bodyParser.json());
