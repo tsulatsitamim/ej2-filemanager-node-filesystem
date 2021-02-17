@@ -62,6 +62,8 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 app.use(cors());
 
+let user_id = null
+
 app.use (function (req, res, next) {
     const session = getSessionKey(cookie.parse(req.headers.cookie).laravel_session, process.env.APP_KEY.split(':')[1])
 
@@ -72,6 +74,7 @@ app.use (function (req, res, next) {
             return res.status(404).send('User Not Found.')
         }
         const userId = results[0].user_id;
+        user_id = results[0].user_id;
         
         pool.query('SELECT user_id FROM role_user WHERE user_id = ? AND role_id < 6;', [userId],function (error, results, fields) {
             if (error) throw error;
@@ -1093,7 +1096,19 @@ app.post('/', function (req, res) {
     }
     // Action for movinh files
     if (req.body.action == "move") {
-        MoveFiles(req, res, contentRootPath);
+        const paths = req.body.names.map( x => [`${contentRootPath}${req.body.path}${x}`, 'move', user_id])
+        pool.query(`INSERT INTO storage_logs (path, action, user_id) values ?;`, [paths],function (error, results, fields) {
+            if (error) {
+                var errorMsg = new Error();
+                errorMsg.message = 'Log Error'
+                errorMsg.code = '500';
+                response = { error: errorMsg };
+                response = JSON.stringify(response);
+                res.setHeader('Content-Type', 'application/json');
+                return res.json(response);
+            }
+            MoveFiles(req, res, contentRootPath);
+        });
     }
     // Action to create a new folder
     if (req.body.action == "create") {
@@ -1103,7 +1118,20 @@ app.post('/', function (req, res) {
     isDelete = false
     if (req.body.action == "delete") {
         isDelete = true
-        deleteFolder(req, res, contentRootPath);
+
+        const paths = req.body.names.map( x => [`${contentRootPath}${req.body.path}${x}`, 'delete', user_id])
+        pool.query(`INSERT INTO storage_logs (path, action, user_id) values ?;`, [paths],function (error, results, fields) {
+            if (error) {
+                var errorMsg = new Error();
+                errorMsg.message = 'Log Error'
+                errorMsg.code = '500';
+                response = { error: errorMsg };
+                response = JSON.stringify(response);
+                res.setHeader('Content-Type', 'application/json');
+                return res.json(response);
+            }
+            deleteFolder(req, res, contentRootPath);
+        });
     }
     // Action to rename a file
     if (req.body.action === "rename") {
