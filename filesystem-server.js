@@ -1008,12 +1008,14 @@ app.post('/Download', function (req, res) {
             res.download(file);
         } else {
             var archive = archiver('zip', {
-                gzip: true,
-                zlib: { level: 9 } // Sets the compression level.
+                store: true
+                // gzip: true,
+                // zlib: { level: 9 } // Sets the compression level.
             });
             var output = fs.createWriteStream('./Files.zip');
             downloadObj.data.forEach(function (item) {
                 archive.on('error', function (err) {
+                    console
                     throw err;
                 });
                 if (item.isFile) {
